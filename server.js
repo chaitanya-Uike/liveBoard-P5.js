@@ -37,16 +37,13 @@ io.on("connection", socket => {
             socket.to(roomId).emit("paint", paintObject)
         })
 
-        socket.on("start-drawing", ({ x, y }) => {
-            socket.to(roomId).emit("move-to", { x, y })
-        })
-
-        socket.on("drawing", ({ x, y }) => {
-            socket.to(roomId).emit("line-to", { x, y })
-        })
-
         socket.on("trigger-clear-canvas", roomId => {
             socket.to(roomId).emit('clear-canvas')
+        })
+
+
+        socket.on("send-path", payload => {
+            socket.to(roomId).emit("draw", payload)
         })
     })
 })

@@ -22,6 +22,7 @@ function setup() {
     canvas.parent('canvasContainer')
 
     background('white')
+    strokeJoin(ROUND);
 }
 
 function mouseDragged() {
@@ -82,7 +83,7 @@ const colorPicker = document.querySelector("#stroke-color")
 const eraser = document.querySelector('#eraser')
 const strokeRange = document.querySelector("#stroke-Range")
 const clearBtn = document.querySelector("#clear-canvas")
-
+const undoBtn = document.querySelector("#undoBtn")
 
 colorPicker.addEventListener('change', e => {
     color = e.target.value
@@ -124,4 +125,9 @@ document.querySelector("body").addEventListener("mousemove", e => {
     else
         drawingCursor.style.display = "none"
 
+})
+
+undoBtn.addEventListener("click", () => {
+    let prevState = get()
+    console.log(prevState);
 })
