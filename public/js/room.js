@@ -18,12 +18,17 @@ let strokeWidth = 5
 let canvasWidth = canvasBounds.width - 2
 let canvasHeight = canvasBounds.height - 2
 
+let ctx
+
 function setup() {
     let canvas = createCanvas(canvasWidth, canvasHeight);
     canvas.parent('canvasContainer')
 
     background('white')
     strokeJoin(ROUND);
+
+    ctx = document.getElementById("defaultCanvas0")
+    undoStack.push()
 }
 
 function mouseDragged() {
@@ -36,9 +41,7 @@ function mouseDragged() {
 }
 
 socket.on("send-state", user => {
-    const canvas = document.getElementById("defaultCanvas0")
-
-    socket.emit("send-canvas-state", user, canvas.toDataURL())
+    socket.emit("send-canvas-state", user, ctx.toDataURL())
 })
 
 socket.on("get-canvas-state", data => {

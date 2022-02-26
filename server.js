@@ -33,14 +33,9 @@ io.on("connection", socket => {
             socket.to(user).emit("get-canvas-state", data)
         })
 
-        socket.on("send-paint-path", paintObject => {
-            socket.to(roomId).emit("paint", paintObject)
-        })
-
         socket.on("trigger-clear-canvas", roomId => {
             socket.to(roomId).emit('clear-canvas')
         })
-
 
         socket.on("send-path", payload => {
             socket.to(roomId).emit("draw", payload)
