@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveBoard</title>
+
+    <link rel="stylesheet" href="css/room.css">
+
+    <script>
+        const roomId = "<%= roomId %>"
+    </script>
+
+    <!-- P5 js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+
+    <script src="socket.io/socket.io.js" defer></script>
+    <script src="js/room.js" defer></script>
+</head>
+
+<body>
+    <main>
+        <div class="drawing-area canvas-element">
+            <div id="canvasContainer"></div>
+            <div id="drawing-cursor" class="canvas-element"></div>
+        </div>
+        <div id="settings-div">
+            <input type="color" id="stroke-color" name="stroke-color" value="#000000">
+            <div id="eraser"></div>
+            <div class="slidecontainer">
+                <input type="range" min="1" max="50" value="5" class="slider" id="stroke-Range">
+            </div>
+            <button id="clear-canvas">clear</button>
+        </div>
+    </main>
+</body>
+
+</html>
