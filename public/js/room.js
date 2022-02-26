@@ -9,7 +9,8 @@ const drawingArea = document.querySelector(".drawing-area")
 const drawingCursor = document.querySelector('#drawing-cursor')
 let cursorBounds = drawingCursor.getBoundingClientRect()
 
-let paintObject = { path: [] }
+let undoStack = []
+let redoStack = []
 
 let color = 'black'
 let strokeWidth = 5
@@ -31,35 +32,8 @@ function mouseDragged() {
 
     line(mouseX, mouseY, pmouseX, pmouseY)
 
-    paintObject.path.push([mouseX, mouseY])
+    socket.emit("send-path", { x1: mouseX, y1: mouseY, x2: pmouseX, y2: pmouseY, color, strokeWidth })
 }
-
-function mouseReleased() {
-    paintObject.color = color
-    paintObject.strokeWidth = strokeWidth
-
-    socket.emit("send-paint-path", paintObject)
-
-    // clear the paint object
-    paintObject.path = []
-}
-
-function paintPath(paintObject) {
-    const path = paintObject.path
-
-    stroke(paintObject.color)
-    strokeWeight(paintObject.strokeWidth)
-
-    for (let i = 0; i < path.length - 1; i++) {
-        line(path[i][0], path[i][1], path[i + 1][0], path[i + 1][1])
-    }
-}
-
-
-// socket events
-socket.on("paint", paintObject => {
-    paintPath(paintObject)
-})
 
 socket.on("send-state", user => {
     const canvas = document.getElementById("defaultCanvas0")
@@ -75,6 +49,14 @@ socket.on("get-canvas-state", data => {
 
 socket.on('clear-canvas', () => {
     background('white')
+})
+
+
+socket.on("draw", payload => {
+    stroke(payload.color)
+    strokeWeight(payload.strokeWidth)
+
+    line(payload.x1, payload.y1, payload.x2, payload.y2)
 })
 
 
