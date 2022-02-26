@@ -5,6 +5,10 @@ socket.emit('join-room', roomId)
 const canvasContainer = document.querySelector("#canvasContainer")
 const canvasBounds = canvasContainer.getBoundingClientRect()
 
+const drawingArea = document.querySelector(".drawing-area")
+const drawingCursor = document.querySelector('#drawing-cursor')
+let cursorBounds = drawingCursor.getBoundingClientRect()
+
 let paintObject = { path: [] }
 
 let color = 'black'
@@ -95,10 +99,10 @@ eraser.addEventListener('click', () => {
 strokeRange.addEventListener("change", e => {
     strokeWidth = e.target.value
 
-    // drawingCursor.style.width = e.target.value + "px"
-    // drawingCursor.style.height = e.target.value + "px"
+    drawingCursor.style.width = e.target.value + "px"
+    drawingCursor.style.height = e.target.value + "px"
 
-    // cursorBounds = drawingCursor.getBoundingClientRect()
+    cursorBounds = drawingCursor.getBoundingClientRect()
 })
 
 clearBtn.addEventListener("click", e => {
@@ -106,12 +110,18 @@ clearBtn.addEventListener("click", e => {
     socket.emit("trigger-clear-canvas", roomId)
 })
 
-// document.querySelector("body").addEventListener("mousemove", e => {
-//     if (!Array.from(e.target.classList).includes("canvas-element")) {
-//         isDrawing = false
-//         drawingCursor.style.display = "none"
-//     }
-//     else {
-//         drawingCursor.style.display = ""
-//     }
-// })
+
+drawingArea.addEventListener("mousemove", () => {
+    drawingCursor.style.left = (mouseX - cursorBounds.width / 2) + "px"
+    drawingCursor.style.top = (mouseY - cursorBounds.height / 2) + "px"
+})
+
+document.querySelector("body").addEventListener("mousemove", e => {
+    if (e.target && (e.target.matches('#defaultCanvas0') || e.target.matches('#drawing-cursor'))) {
+        drawingCursor.style.display = "inline-block"
+        cursorBounds = drawingCursor.getBoundingClientRect()
+    }
+    else
+        drawingCursor.style.display = "none"
+
+})
