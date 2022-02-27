@@ -13,20 +13,6 @@ main{
     align-items: center;
 }
 
-.drawing-area{
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    width: 1000px;
-    height: 800px;
-
-    cursor: none;
-
-    overflow: hidden;
-}
-
 #drawing-cursor{
     position: absolute;
     width: 5px;
@@ -40,9 +26,16 @@ main{
 }
 
 #canvasContainer{
+    position: relative;
+
+    width: 1000px;
+    height: 800px;
+    
     border: 1px solid black;
-    width: 100%;
-    height: 100%;
+
+    cursor: none;
+
+    overflow: hidden;
 }
 
 #settings-div{

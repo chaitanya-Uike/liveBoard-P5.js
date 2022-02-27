@@ -29,8 +29,8 @@ io.on("connection", socket => {
         if (host)
             socket.to(host).emit('send-state', socket.id)
 
-        socket.on("send-canvas-state", (user, data) => {
-            socket.to(user).emit("get-canvas-state", data)
+        socket.on("send-canvas-state", (user, data, undoStack, redoStack) => {
+            socket.to(user).emit("get-canvas-state", data, undoStack, redoStack)
         })
 
         socket.on("trigger-clear-canvas", roomId => {
@@ -39,6 +39,14 @@ io.on("connection", socket => {
 
         socket.on("send-path", payload => {
             socket.to(roomId).emit("draw", payload)
+        })
+
+        socket.on("undo-triggered", () => {
+            socket.to(roomId).emit("undo")
+        })
+
+        socket.on("redo-triggered", () => {
+            socket.to(roomId).emit("redo")
         })
     })
 })

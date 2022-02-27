@@ -5,7 +5,6 @@ socket.emit('join-room', roomId)
 const canvasContainer = document.querySelector("#canvasContainer")
 const canvasBounds = canvasContainer.getBoundingClientRect()
 
-const drawingArea = document.querySelector(".drawing-area")
 const drawingCursor = document.querySelector('#drawing-cursor')
 let cursorBounds = drawingCursor.getBoundingClientRect()
 
@@ -20,6 +19,8 @@ let canvasHeight = canvasBounds.height - 2
 
 let ctx
 
+let isDrawing = false
+
 function setup() {
     let canvas = createCanvas(canvasWidth, canvasHeight);
     canvas.parent('canvasContainer')
@@ -28,10 +29,14 @@ function setup() {
     strokeJoin(ROUND);
 
     ctx = document.getElementById("defaultCanvas0")
-    undoStack.push()
+
+    saveState(ctx.toDataURL())
 }
 
 function mouseDragged() {
+    if (!isDrawing)
+        return
+
     stroke(color)
     strokeWeight(strokeWidth)
 
@@ -40,22 +45,46 @@ function mouseDragged() {
     socket.emit("send-path", { x1: mouseX, y1: mouseY, x2: pmouseX, y2: pmouseY, color, strokeWidth })
 }
 
+function mouseReleased() {
+    if (!isDrawing)
+        return
+
+    socket.emit("send-path", { "drawingEnd": true })
+    saveState(ctx.toDataURL())
+}
+
+function saveState(state) {
+    if (undoStack.length == 10)
+        undoStack.shift()
+
+    undoStack.push(state)
+}
+
 socket.on("send-state", user => {
-    socket.emit("send-canvas-state", user, ctx.toDataURL())
+    socket.emit("send-canvas-state", user, ctx.toDataURL(), undoStack, redoStack)
 })
 
-socket.on("get-canvas-state", data => {
+socket.on("get-canvas-state", (data, undoData, redoData) => {
     loadImage(data, img => {
         image(img, 0, 0, canvasWidth, canvasHeight);
     });
+
+    undoStack = [...undoData]
+    redoStack = [...redoData]
 })
 
 socket.on('clear-canvas', () => {
+    saveState(ctx.toDataURL())
     background('white')
 })
 
 
 socket.on("draw", payload => {
+    if (payload.drawingEnd) {
+        saveState(ctx.toDataURL())
+        return
+    }
+
     stroke(payload.color)
     strokeWeight(payload.strokeWidth)
 
@@ -69,6 +98,7 @@ const eraser = document.querySelector('#eraser')
 const strokeRange = document.querySelector("#stroke-Range")
 const clearBtn = document.querySelector("#clear-canvas")
 const undoBtn = document.querySelector("#undoBtn")
+const redoBtn = document.querySelector("#redoBtn")
 
 colorPicker.addEventListener('change', e => {
     color = e.target.value
@@ -91,13 +121,14 @@ strokeRange.addEventListener("change", e => {
     cursorBounds = drawingCursor.getBoundingClientRect()
 })
 
-clearBtn.addEventListener("click", e => {
+clearBtn.addEventListener("click", () => {
+    saveState(ctx.toDataURL())
     background('white')
     socket.emit("trigger-clear-canvas", roomId)
 })
 
 
-drawingArea.addEventListener("mousemove", () => {
+canvasContainer.addEventListener("mousemove", () => {
     drawingCursor.style.left = (mouseX - cursorBounds.width / 2) + "px"
     drawingCursor.style.top = (mouseY - cursorBounds.height / 2) + "px"
 })
@@ -106,13 +137,61 @@ document.querySelector("body").addEventListener("mousemove", e => {
     if (e.target && (e.target.matches('#defaultCanvas0') || e.target.matches('#drawing-cursor'))) {
         drawingCursor.style.display = "inline-block"
         cursorBounds = drawingCursor.getBoundingClientRect()
+        isDrawing = true
     }
-    else
+    else {
         drawingCursor.style.display = "none"
-
+        isDrawing = false
+    }
 })
 
 undoBtn.addEventListener("click", () => {
-    let prevState = get()
-    console.log(prevState);
+    undo()
+    socket.emit("undo-triggered")
 })
+
+
+redoBtn.addEventListener("click", () => {
+    redo()
+    socket.emit("redo-triggered")
+})
+
+socket.on("undo", () => {
+    undo()
+})
+
+socket.on("redo", () => {
+    redo()
+})
+
+
+function undo() {
+    if (undoStack.length == 1)
+        return
+
+    updateRedoStack(undoStack.pop())
+
+    loadImage(undoStack[undoStack.length - 1], img => {
+        image(img, 0, 0, canvasWidth, canvasHeight);
+    });
+}
+
+function redo() {
+    if (redoStack.length == 0)
+        return
+
+    const data = redoStack.pop()
+
+    loadImage(data, img => {
+        image(img, 0, 0, canvasWidth, canvasHeight);
+    });
+
+    saveState(data)
+}
+
+function updateRedoStack(state) {
+    if (redoStack.length == 10)
+        redoStack.shift()
+
+    redoStack.push(state)
+}
